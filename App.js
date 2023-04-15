@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TextInput, Pressable } from 'react-native';
 
 export default function App() {
   const [balls, setBalls] = useState([])
@@ -75,20 +75,28 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Statistika lucky six za poslednjih {round} rundi</Text>
-      <View style={{ flexDirection: 'row' }}>
-        <TouchableOpacity onPress={() => sort()} style={styles.button}><Text style={{ color: 'white' }}>Sort</Text></TouchableOpacity>
-        <TouchableOpacity onPress={() => unSort()} style={styles.button}><Text style={{ color: 'white' }}>Brojevi</Text></TouchableOpacity>
+
+      <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end' }}>
+        <Text style={{ color: 'white' }}>Izaberi broj rundi: </Text>
+        <TextInput
+          value={round.toString()}
+          onChangeText={handleTextChange} style={styles.input}></TextInput>
       </View>
-      <TextInput
-        value={round.toString()}
-        onChangeText={handleTextChange}></TextInput>
-      <TouchableOpacity onPress={toggle}><Text>Refresh</Text></TouchableOpacity>
-      <Text style={{ color: 'white', alignSelf: 'flex-end' }}>Poslednja runda: {roundNumber}</Text>
-      {round > 0 ? <FlatList
-        data={sorted[1] ? sorted : balls}
-        keyExtractor={balls.number}
-        renderItem={renderItem}
-        numColumns={8} /> : <Text>Izaberi dobro broj rundi</Text>}
+      <View style={{ width: '100%' }}>
+        {round > 0 ? <FlatList
+          data={sorted[1] ? sorted : balls}
+          keyExtractor={balls.number}
+          renderItem={renderItem}
+          numColumns={8} /> : <Text>Izaberi dobro broj rundi</Text>}
+      </View>
+      <View style={{ flexDirection: 'row', width: '100%', marginVertical: 2 }}>
+        <Pressable onPress={toggle} style={[styles.button, { alignSelf: 'flex-start' }]}><Text>Refresuj</Text></Pressable>
+        <Text style={{ color: 'white', marginLeft: 'auto' }}>Poslednja runda: {roundNumber}</Text>
+      </View>
+      <View style={{ flexDirection: 'row' }}>
+        <Pressable onPress={() => sort()} style={styles.button}><Text style={{ color: 'white', fontSize: 16 }}>Sort</Text></Pressable>
+        <Pressable onPress={() => unSort()} style={styles.button}><Text style={{ color: 'white', fontSize: 16 }}>Brojevi</Text></Pressable>
+      </View>
     </View>
   );
 }
@@ -105,6 +113,16 @@ const styles = StyleSheet.create({
   title: {
     color: 'white',
     fontSize: 16,
+    marginVertical: 10,
+    fontWeight: '600'
+  },
+  input: {
+    backgroundColor: 'white',
+    textAlign: 'center',
+    borderRadius: 3,
+    width: 40,
+    fontSize: 18,
+    fontWeight: 'bold'
   },
   button: {
     borderRadius: 5,
@@ -115,7 +133,7 @@ const styles = StyleSheet.create({
     height: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    margin: 10
+    margin: 5
   },
   ballCount: {
     width: 100 / 8 + '%',
@@ -141,5 +159,8 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 12,
     margin: 5
+  },
+  refresh: {
+    width: 20, height: 20
   }
 });
