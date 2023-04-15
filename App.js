@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, Text, View, FlatList, TextInput, Pressable } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TextInput, Pressable, ScrollView } from 'react-native';
 
 export default function App() {
   const [balls, setBalls] = useState([])
@@ -7,10 +7,10 @@ export default function App() {
   const [round, setRound] = useState(10)
   const [roundNumber, setRoundNumber] = useState(0)
   const [refresh, setRefresh] = useState(false)
+  const [numberPicked, setNumberPicked] = useState(35)
 
   const colorsBorder = ['#9a9a9a', '#dd1f1f', '#1cc51c', '#0087ff', '#a82def', '#844e14', '#efc82d', '#cb5b00'];
   const colors = ['rgba(154,154,154,0.3)', 'rgba(221,31,31,0.3)', 'rgba(28,197,28,0.3)', 'rgba(0,135,255,0.3)', 'rgba(168,45,239,0.3);', 'rgba(132,78,20,0.3)', 'rgba(239,200,45,0.3)', 'rgba(203,91,0,0.3)'];
-  const colorsBar = ['white', 'E82916', '#E85F16', '#AECD13', '#109218', '#0E731D']
 
   useEffect(() => {
     fetch(`https://ngs.7platform.com/api_open/web/events?cpvUuid=0f3851bd-6fe8-4ed5-8fa1-c8f03aecc067&product=LuckySix&count=${round > 0 ? round : 10}`)
@@ -19,7 +19,7 @@ export default function App() {
         let count = {}
         setRoundNumber(data[0].eventId)
         data.map(rounds => {
-          let roundBall = rounds.balls
+          let roundBall = rounds.balls.slice(0, numberPicked)
           roundBall.map(ball => {
             count[ball.ball] = (count[ball.ball] || 0) + 1;
           })
@@ -28,7 +28,7 @@ export default function App() {
         setBalls(numberCounts)
       })
       .catch(error => console.error(error));
-  }, [round, refresh]);
+  }, [round, refresh, numberPicked]);
 
   const renderItem = useCallback(({ item }) => {
     const { number, count } = item
@@ -49,7 +49,7 @@ export default function App() {
         </View>
       </View>
     )
-  }, [round])
+  }, [round, numberPicked, refresh])
 
   const sort = () => {
     const sorted = [...balls].sort((a, b) => b.count - a.count);
@@ -60,55 +60,72 @@ export default function App() {
     setSorted([]);
   }
 
+  const picked = (number) => {
+    unSort();
+    setNumberPicked(number);
+    console.log(number)
+  }
+
   const toggle = () => {
     unSort();
+    setNumberPicked(35)
     setRefresh(!refresh);
   };
 
   const handleTextChange = (text) => {
     const numericValue = text.replace(/[^0-9]/g, '');
+    setNumberPicked(35)
     setRound(numericValue);
   }
 
   console.log("renderuje se")
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Statistika lucky six za poslednjih {round} rundi</Text>
+    <ScrollView nestedScrollEnabled={true}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Statistika lucky six za poslednjih {round} rundi</Text>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end' }}>
-        <Text style={{ color: 'white' }}>Izaberi broj rundi: </Text>
-        <TextInput
-          value={round.toString()}
-          onChangeText={handleTextChange} style={styles.input}></TextInput>
+        <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end' }}>
+          <Text style={{ color: 'white' }}>Izaberi broj rundi: </Text>
+          <TextInput
+            value={round.toString()}
+            onChangeText={handleTextChange} style={styles.input}></TextInput>
+        </View>
+        <View style={{ width: '100%' }}>
+          {round > 0 ? <FlatList
+            data={sorted[1] ? sorted : balls}
+            keyExtractor={balls.number}
+            renderItem={renderItem}
+            numColumns={8} /> : <Text>Izaberi dobro broj rundi</Text>}
+        </View>
+        <View style={{ flexDirection: 'row', width: '100%', marginVertical: 2 }}>
+          <Pressable onPress={toggle} style={[styles.button, { alignSelf: 'flex-start' }]}><Text>Refresuj</Text></Pressable>
+          <Text style={{ color: 'white', marginLeft: 'auto' }}>Poslednja runda: {roundNumber}</Text>
+        </View>
+        <View style={{ flexDirection: 'row' }}>
+          <Pressable onPress={() => sort()} style={styles.button}><Text style={{ color: 'white', fontSize: 16 }}>Sort</Text></Pressable>
+          <Pressable onPress={() => unSort()} style={styles.button}><Text style={{ color: 'white', fontSize: 16 }}>Brojevi</Text></Pressable>
+        </View>
+        <View style={{ flexDirection: 'row' }}>
+          <Pressable onPress={() => picked(5)} style={styles.button}><Text style={{ color: 'white', fontSize: 16 }}>Bubanj</Text></Pressable>
+          <Pressable onPress={() => picked(10)} style={styles.button}><Text style={{ color: 'white', fontSize: 16 }}>Prvih 10</Text></Pressable>
+          <Pressable onPress={() => picked(15)} style={styles.button}><Text style={{ color: 'white', fontSize: 16 }}>Prvih 15</Text></Pressable>
+          <Pressable onPress={() => picked(20)} style={styles.button}><Text style={{ color: 'white', fontSize: 16 }}>Prvhi 20</Text></Pressable>
+          <Pressable onPress={() => picked(35)} style={styles.button}><Text style={{ color: 'white', fontSize: 16 }}>Svi</Text></Pressable>
+        </View>
       </View>
-      <View style={{ width: '100%' }}>
-        {round > 0 ? <FlatList
-          data={sorted[1] ? sorted : balls}
-          keyExtractor={balls.number}
-          renderItem={renderItem}
-          numColumns={8} /> : <Text>Izaberi dobro broj rundi</Text>}
-      </View>
-      <View style={{ flexDirection: 'row', width: '100%', marginVertical: 2 }}>
-        <Pressable onPress={toggle} style={[styles.button, { alignSelf: 'flex-start' }]}><Text>Refresuj</Text></Pressable>
-        <Text style={{ color: 'white', marginLeft: 'auto' }}>Poslednja runda: {roundNumber}</Text>
-      </View>
-      <View style={{ flexDirection: 'row' }}>
-        <Pressable onPress={() => sort()} style={styles.button}><Text style={{ color: 'white', fontSize: 16 }}>Sort</Text></Pressable>
-        <Pressable onPress={() => unSort()} style={styles.button}><Text style={{ color: 'white', fontSize: 16 }}>Brojevi</Text></Pressable>
-      </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     paddingTop: 60,
-    flex: 1,
     backgroundColor: 'hsl( 210, 4% , 18% )',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    padding: 10
+    justifyContent: 'center ',
+    padding: 10,
+    maxWidth: 1000
   },
   title: {
     color: 'white',
