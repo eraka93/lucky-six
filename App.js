@@ -77,9 +77,6 @@ export default function App() {
     setNumberPicked(35)
     setRound(numericValue);
   }
-
-  console.log("renderuje se")
-
   return (
     <ScrollView nestedScrollEnabled={true}>
       <View style={styles.container}>
