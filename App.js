@@ -69,9 +69,6 @@ export default function App() {
     const numericValue = text.replace(/[^0-9]/g, '');
     setRound(numericValue);
   }
-
-  console.log("renderuje se")
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Statistika lucky six za poslednjih {round} rundi</Text>
